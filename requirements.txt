@@ -1,7 +1,15 @@
 yfinance
 pandas
+numpy
+scikit-learn
 tensorflow
 prophet
 fastapi
 pydantic
 uvicorn
+requests
+vaderSentiment
+# httpx2 is only needed for the in-process FastAPI TestClient smoke run
+# in the __main__ block (current Starlette requires it); serving with
+# uvicorn does not need it.
+httpx2

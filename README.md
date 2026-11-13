@@ -67,14 +67,53 @@ Always combine AI predictions with fundamental analysis
 
 ---
 
-## About the code in this repo (added during code repair, Nov 2026)
+## About the code in this repo (updated Nov 2026)
 
-`AI Price Prediction System.py` is an **architecture blueprint** for a
-Dogecoin price-prediction service (yfinance data + LSTM/Prophet hybrid +
-risk scoring + FastAPI endpoint). It is not a runnable program: five helper
-functions it calls were never written (`scrape_reddit_sentiment`,
+`AI Price Prediction System.py` is a Dogecoin price-prediction service
+(yfinance data + LSTM/Prophet hybrid + risk scoring + FastAPI endpoint).
+It began as an architecture blueprint: five helper functions it called
+were never written, and the endpoint referenced a global `models`
+registry that did not exist. **Those functions are now implemented**
+(marked "NEW (Nov 2026)" in the file): `scrape_reddit_sentiment`,
 `historical_max_drawdown`, `current_volatility`, `get_live_sentiment`,
-`load_latest_data`), and the API endpoint references a global `models`
-registry that is never created. The call sites are marked TODO in the file.
-(The essay above was this repo's original README and is unrelated to the
-code; it has been kept as-is.)
+`load_latest_data`, and the lazy-training `models` registry. The
+blueprint's model shapes, 0.6/0.4 LSTM/Prophet blend and 0.4/0.3/0.3
+risk weights are unchanged; two internal inconsistencies in the
+blueprint (an LSTM `fit()` call with no targets, and the whole frame
+being passed where a 30-day window belongs) were repaired and are
+marked in the code.
+
+## How to run
+
+```bash
+pip install -r requirements.txt
+python "AI Price Prediction System.py"
+```
+
+The `__main__` block trains the hybrid model on public DOGE-USD data
+(Yahoo Finance, 2018-present) and answers one `/predict` request
+in-process via FastAPI's TestClient — no public server is started. A
+full run takes ~3 minutes (50 LSTM epochs + a Prophet fit). To serve
+for real: `uvicorn "AI Price Prediction System:app" --port 8000`
+(first request per ticker triggers training).
+
+## Run status (verified Nov 2026)
+
+Verified end-to-end in this environment. The run printed:
+
+```
+[sentiment] Reddit public JSON returned HTTP 403; live sentiment needs OAuth -- using neutral 0.0 sentiment.
+[models] training hybrid model for DOGE-USD (first request)...
+POST /predict -> 200
+{'prediction': '$0.0688', 'risk': 'Low', 'recommendation': 'Buy', 'time_horizon': '7-day forecast'}
+```
+
+Honest limitation: Reddit refuses unauthenticated scraping (HTTP 403),
+so the sentiment input ran on the documented neutral-0.0 fallback;
+live sentiment would require Reddit OAuth credentials. The risk
+helpers (`historical_max_drawdown`, `current_volatility`) are computed
+from the real downloaded DOGE history. Predictions from a demo model
+trained on public data are not investment advice.
+
+(The essay at the top of this README was the repo's original README
+and is unrelated to the code; it has been kept as-is.)
