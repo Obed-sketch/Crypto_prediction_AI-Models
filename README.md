@@ -64,3 +64,17 @@ Dogecoin reaching $100 is mathematically improbable without hyperinflation
 XRP has better fundamentals but faces regulatory uncertainty
 Prediction systems can provide edge but require constant maintenance
 Always combine AI predictions with fundamental analysis
+
+---
+
+## About the code in this repo (added during code repair, Nov 2026)
+
+`AI Price Prediction System.py` is an **architecture blueprint** for a
+Dogecoin price-prediction service (yfinance data + LSTM/Prophet hybrid +
+risk scoring + FastAPI endpoint). It is not a runnable program: five helper
+functions it calls were never written (`scrape_reddit_sentiment`,
+`historical_max_drawdown`, `current_volatility`, `get_live_sentiment`,
+`load_latest_data`), and the API endpoint references a global `models`
+registry that is never created. The call sites are marked TODO in the file.
+(The essay above was this repo's original README and is unrelated to the
+code; it has been kept as-is.)

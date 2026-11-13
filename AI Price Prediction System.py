@@ -1,3 +1,12 @@
+# STATUS (added during code repair, Nov 2026): this file is an architecture
+# BLUEPRINT, not a runnable program. It parses as Python, but several
+# functions it calls were never written -- scrape_reddit_sentiment(),
+# historical_max_drawdown(), current_volatility(), get_live_sentiment() and
+# load_latest_data() do not exist anywhere, and the FastAPI endpoint
+# references a global `models` registry that is never created. Those call
+# sites are marked TODO below. Nothing was implemented during the repair;
+# the file is kept as a design sketch.
+#
 # AI Price Prediction System Architecture
 # graph TD
 #    A[Data Collection] --> B[Feature Engineering]
@@ -20,6 +29,7 @@ def fetch_crypto_data(ticker='DOGE-USD', start='2018-01-01'):
     data['Volatility'] = data['Close'].pct_change().rolling(7).std()
     
     # Merge with sentiment data
+    # TODO: scrape_reddit_sentiment() was never implemented.
     reddit_sentiment = scrape_reddit_sentiment('dogecoin')
     data = pd.merge(data, reddit_sentiment, left_index=True, right_index=True)
     
@@ -67,6 +77,7 @@ def hybrid_predict(models, input_data):
 
 # 3. Risk Analysis Engine
 def calculate_risk(prediction, current_price):
+    # TODO: all three helpers called here were never implemented.
     risk_metrics = {
         'max_drawdown': historical_max_drawdown(),
         'volatility_index': current_volatility(),
@@ -98,6 +109,8 @@ class PredictionRequest(BaseModel):
 
 @app.post("/predict")
 async def predict(request: PredictionRequest):
+    # TODO: load_latest_data() was never implemented, and the global `models`
+    # registry this indexes was never created or populated.
     data = load_latest_data(request.ticker)
     prediction = hybrid_predict(models[request.ticker], data)
     risk_assessment = calculate_risk(prediction, data['Close'].iloc[-1])
